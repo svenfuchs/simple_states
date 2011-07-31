@@ -28,5 +28,3 @@ class PredicatesTest < Test::Unit::TestCase
     assert object.was_started?
   end
 end
-
-

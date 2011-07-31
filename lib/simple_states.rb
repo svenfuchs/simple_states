@@ -15,7 +15,11 @@ module SimpleStates
     end
 
     def define_event(target, event)
-      target.send(:define_method, event.name) { |*args| event.call(self, *args) { super(*args) } }
+      target.send(:define_method, event.name) do |*args|
+        event.call(self, *args) do
+          super(*args) if self.class.method_defined?(event.name)
+        end
+      end
     end
 
     def define_predicates(target, _state)

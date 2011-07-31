@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class SimpleStatesTest < Test::Unit::TestCase
+class ClassMacroTest < Test::Unit::TestCase
   include ClassCreateHelper
 
   test "Class.states announces states the class supports" do
@@ -16,4 +16,3 @@ class SimpleStatesTest < Test::Unit::TestCase
     assert_equal :started, object.state
   end
 end
-
