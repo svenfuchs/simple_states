@@ -17,7 +17,7 @@ module SimpleStates
     def call(object, *args)
       return if skip?(object, args)
 
-      assert_transition(object)
+      assert_valid_transition(object)
       run_callback(:before, object, args)
 
       yield.tap do
@@ -39,8 +39,10 @@ module SimpleStates
         send_method(options.send(type), object, args) if options.send(type)
       end
 
-      def assert_transition(object)
-        # assert transition is allowed
+      def assert_valid_transition(object)
+        if options.from && options.from != object.state
+          raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
+        end
       end
 
       def set_state(object)

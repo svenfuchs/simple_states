@@ -3,6 +3,8 @@ require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module SimpleStates
+  class TransitionException < RuntimeError; end
+
   autoload :Event, 'simple_states/event'
 
   extend ActiveSupport::Concern
