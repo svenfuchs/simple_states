@@ -25,7 +25,7 @@ class CallbacksTest < Test::Unit::TestCase
     object.start(:foo, :bar)
 
     assert object.instance_variable_get(:@prepared)
-    assert object.instance_variable_get(:@received_arg).is_a?(SimpleStates::Event)
+    assert_equal :start, object.instance_variable_get(:@received_arg)
   end
 
   test "before callback (arity -1)" do
@@ -63,7 +63,7 @@ class CallbacksTest < Test::Unit::TestCase
     object.start(:foo, :bar)
 
     assert object.instance_variable_get(:@clean)
-    assert object.instance_variable_get(:@received_arg).is_a?(SimpleStates::Event)
+    assert_equal :start, object.instance_variable_get(:@received_arg)
   end
 
   test "after callback (arity -1)" do

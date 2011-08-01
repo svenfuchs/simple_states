@@ -25,7 +25,7 @@ class CancellationTest < Test::Unit::TestCase
     object.start(:foo, :bar)
 
     assert object.started?
-    assert object.instance_variable_get(:@received_arg).is_a?(SimpleStates::Event)
+    assert_equal :start, object.instance_variable_get(:@received_arg)
   end
 
   test "Class.event wraps a method with cancellation callbacks (if: arity -1)" do

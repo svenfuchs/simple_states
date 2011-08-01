@@ -47,8 +47,8 @@ module SimpleStates
 
       def set_state(object)
         if options.to
-          object.past_states << object.state
-          object.state = options.to
+          object.past_states << object.state if object.state
+          object.state = options.to.to_sym
         end
       end
 
