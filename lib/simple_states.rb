@@ -45,7 +45,11 @@ module SimpleStates
   end
 
   module ClassMethods
-    def new
+    def new(*)
+      super.tap { |object| SimpleStates.install(object) }
+    end
+
+    def allocate
       super.tap { |object| SimpleStates.install(object) }
     end
 
