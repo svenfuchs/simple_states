@@ -25,8 +25,8 @@ module SimpleStates
     end
 
     def define_predicates(target, _state)
-      target.send(:define_method, :"#{_state}?") do |include_past = false|
-        include_past ? send(:"was_#{_state}?") : state == _state
+      target.send(:define_method, :"#{_state}?") do |*args|
+        args.first ? send(:"was_#{_state}?") : state == _state
       end
 
       target.send(:define_method, :"was_#{_state}?") do
