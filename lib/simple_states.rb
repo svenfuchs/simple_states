@@ -6,61 +6,44 @@ require 'active_support/core_ext/object/try'
 module SimpleStates
   class TransitionException < RuntimeError; end
 
-  autoload :Event, 'simple_states/event'
+  PREDICATE_PATTERN = /(was_|^)(\w+?)\?$/
+
+  autoload :Event,  'simple_states/event'
+  autoload :States, 'simple_states/states'
 
   extend ActiveSupport::Concern
 
-  class << self
-    def install(object)
-      target = object.singleton_class
-      object.class.events.each { |event| define_event(target, event) }
-      object.class.states.each { |state| define_predicates(target, state) }
-    end
-
-    def define_event(target, event)
-      target.send(:define_method, event.name) do |*args|
-        event.call(self, *args) do
-          super(*args) if self.class.method_defined?(event.name)
-        end
-      end
-      target.send(:define_method, :"#{event.name}!") do |*args|
-        send(event.name, *args)
-        save!
-      end
-    end
-
-    def define_predicates(target, _state)
-      target.send(:define_method, :"#{_state}?") do |*args|
-        args.first ? send(:"was_#{_state}?") : state.try(:to_sym) == _state
-      end
-
-      target.send(:define_method, :"was_#{_state}?") do
-        past_states.concat([state.try(:to_sym)]).compact.include?(_state)
-      end
-    end
-  end
-
   included do
-    class_inheritable_accessor :state_names, :events
-    self.state_names, self.events = [], []
+    class_inheritable_accessor :state_names, :initial_state, :events
+    self.initial_state = :created
+    self.events = []
   end
 
   module ClassMethods
     def new(*)
-      super.tap { |object| SimpleStates.install(object) }
+      super.tap { |object| States.init(object) }
     end
 
     def allocate
-      super.tap { |object| SimpleStates.install(object) }
+      super.tap { |object| States.init(object) }
     end
 
     def states(*args)
-      args.empty? ? state_names : self.state_names = args.map(&:to_sym)
+      if args.empty?
+        self.state_names ||= add_states(self.initial_state)
+      else
+        options = args.last.is_a?(Hash) ? args.pop : {}
+        self.initial_state = options[:initial].to_sym if options.key?(:initial)
+        add_states(*[self.initial_state].concat(args))
+      end
+    end
+
+    def add_states(*states)
+      self.state_names = (self.state_names || []).concat(states.compact.map(&:to_sym)).uniq
     end
 
     def event(name, options = {})
-      self.states << options[:from] if options[:from]
-      self.states << options[:to]   if options[:to]
+      add_states(options[:from], options[:to])
       self.events << Event.new(name, options)
     end
   end
@@ -69,5 +52,21 @@ module SimpleStates
 
   def past_states
     @past_states ||= []
+  end
+
+  def state?(state, include_past = false)
+    include_past ? was_state?(state) : self.state.try(:to_sym) == state.to_sym
+  end
+
+  def was_state?(state)
+    past_states.concat([self.state.try(:to_sym)]).compact.include?(state.to_sym)
+  end
+
+  def respond_to?(method)
+    method.to_s =~ SimpleStates::PREDICATE_PATTERN ? self.class.state_names.include?($2.to_sym) : super
+  end
+
+  def method_missing(method, *args, &block)
+    method.to_s =~ SimpleStates::PREDICATE_PATTERN ? send(:"#{$1}state?", $2, *args) : super
   end
 end
