@@ -3,7 +3,11 @@ module SimpleStates
     class << self
       def init(object)
         object.singleton_class.send(:include, proxy_for(object.class))
-        object.state = object.class.initial_state
+        if object.singleton_class.respond_to?(:after_initialize)
+          object.singleton_class.after_initialize { self.state = self.class.initial_state if state.blank? }
+        else
+          object.state = object.class.initial_state
+        end
       end
 
       def proxy_for(klass)
