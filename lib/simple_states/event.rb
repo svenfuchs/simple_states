@@ -30,13 +30,13 @@ module SimpleStates
 
       def skip?(object, args)
         result = false
-        result ||= !send_method(options.if, object, args) if options.if?
-        result ||= send_method(options.except, object, args) if options.except?
+        result ||= !send_method(object, options.if, args) if options.if?
+        result ||= send_method(object, options.except, args) if options.except?
         result
       end
 
       def run_callback(type, object, args)
-        send_method(options.send(type), object, args) if options.send(type)
+        send_method(object, options.send(type), args) if options.send(type)
       end
 
       def assert_valid_transition(object)
@@ -53,12 +53,16 @@ module SimpleStates
         end
       end
 
-      def send_method(method, object, args)
-        object.send method, *case arity = object.class.instance_method(method).arity
+      def send_method(object, method, args)
+        object.send method, *case arity = self.arity(object, method)
           when 0;  []
           when -1; [name].concat(args)
           else;    [name].concat(args).slice(0..arity - 1)
         end
+      end
+
+      def arity(object, method)
+        object.class.instance_method(method).arity rescue 0
       end
   end
 end
