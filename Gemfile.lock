@@ -16,6 +16,7 @@ GEM
       rbx-require-relative (> 0.0.4)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)
+    mocha (0.9.12)
     rbx-require-relative (0.0.5)
     require_relative (1.0.2)
     ruby-debug (0.10.4)
@@ -39,6 +40,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  mocha
   require_relative (~> 1.0.1)
   ruby-debug
   ruby-debug19

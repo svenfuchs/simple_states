@@ -74,4 +74,12 @@ class StatesTest < Test::Unit::TestCase
     assert object.was_created?
     assert object.was_started?
   end
+
+  test "[state]_at is set if a writer is defined" do
+    now = Time.now.tap { |now| Time.stubs(:now).returns(now) }
+    object = create_class { event :start, :from => :created, :to => :started }.new
+    object.singleton_class.send(:attr_accessor, :started_at)
+    object.start
+    assert_equal now, object.started_at
+  end
 end

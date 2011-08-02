@@ -1,7 +1,9 @@
 require 'bundler/setup'
 require 'test/unit'
 require 'test_declarative'
+require 'mocha'
 require 'ruby-debug'
+
 require 'simple_states'
 
 module ClassCreateHelper
