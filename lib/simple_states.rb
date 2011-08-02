@@ -62,11 +62,11 @@ module SimpleStates
     past_states.concat([self.state.try(:to_sym)]).compact.include?(state.to_sym)
   end
 
-  def respond_to?(method)
-    method.to_s =~ SimpleStates::PREDICATE_PATTERN ? self.class.state_names.include?($2.to_sym) : super
+  def respond_to?(method, include_private = false)
+    method.to_s =~ /(was_|^)(#{self.class.states.join('|')})\?$/ && self.class.state_names.include?($2.to_sym) || super
   end
 
   def method_missing(method, *args, &block)
-    method.to_s =~ SimpleStates::PREDICATE_PATTERN ? send(:"#{$1}state?", $2, *args) : super
+    method.to_s =~ /(was_|^)(#{self.class.states.join('|')})\?$/ ? send(:"#{$1}state?", $2, *args) : super
   end
 end
