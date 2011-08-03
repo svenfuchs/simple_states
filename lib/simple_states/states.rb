@@ -16,23 +16,30 @@ module SimpleStates
     end
 
     def initialize(events)
-      events.each do |event|
+      merge_events(events).each do |event|
         define_event(event)
       end
     end
 
-    def define_event(event)
-      define_method(event.name) do |*args|
-        event.send(:call, self, *args) do
-          super(*args) if self.class.method_defined?(event.name)
+    protected
+
+      def define_event(event)
+        define_method(event.name) do |*args|
+          event.send(:call, self, *args) do
+            super(*args) if self.class.method_defined?(event.name)
+          end
+        end
+
+        define_method(:"#{event.name}!") do |*args|
+          event.saving do
+            send(event.name, *args)
+          end
         end
       end
 
-      define_method(:"#{event.name}!") do |*args|
-        event.saving do
-          send(event.name, *args)
-        end
+      def merge_events(events)
+        merges, events = *events.partition { |event| event.name == :all }
+        events.each { |event| merges.each { |merge| event.merge(merge) } }
       end
-    end
   end
 end

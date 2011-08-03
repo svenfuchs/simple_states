@@ -22,13 +22,19 @@ module SimpleStates
     def call(object, *args)
       return if skip?(object, args)
 
-      assert_valid_transition(object)
-      run_callback(:before, object, args)
+      raise_invalid_transition(object) unless can_transition?(object)
+      run_callbacks(object, :before, args)
 
       yield.tap do
         set_state(object)
-        run_callback(:after, object, args)
+        run_callbacks(object, :after, args)
         object.save! if @saving
+      end
+    end
+
+    def merge(other)
+      other.options.each do |key, value|
+        options[key] = [options[key], value].compact unless key == :to
       end
     end
 
@@ -36,19 +42,21 @@ module SimpleStates
 
       def skip?(object, args)
         result = false
-        result ||= !send_method(object, options.if, args) if options.if?
-        result ||= send_method(object, options.except, args) if options.except?
+        result ||= !send_methods(object, options.if, args) if options.if?
+        result ||= send_methods(object, options.except, args) if options.except?
         result
       end
 
-      def run_callback(type, object, args)
-        send_method(object, options.send(type), args) if options.send(type)
+      def can_transition?(object)
+        object.state && Array(options.from).include?(object.state)
       end
 
-      def assert_valid_transition(object)
-        if options.from && options.from != object.state
-          raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
-        end
+      def raise_invalid_transition(object)
+        raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
+      end
+
+      def run_callbacks(object, type, args)
+        send_methods(object, options.send(type), args)
       end
 
       def set_state(object)
@@ -58,6 +66,10 @@ module SimpleStates
           object.send(:"#{state}_at=", Time.now) if object.respond_to?(:"#{state}_at=")
           object.save! if @saving
         end
+      end
+
+      def send_methods(object, methods, args)
+        Array(methods).inject(false) { |result, method| result | send_method(object, method, args) } if methods
       end
 
       def send_method(object, method, args)

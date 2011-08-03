@@ -41,41 +41,69 @@ class CallbacksTest < Test::Unit::TestCase
     assert_equal 3, object.instance_variable_get(:@received_args).size
   end
 
-  test "after callback (arity 0)" do
+  test "multiple before callbacks" do
     klass = create_class do
-      event :start, :from => :created, :to => :started, :after => :cleanup
-      define_method(:cleanup) { @clean = true }
+      event :start, :from => :created, :to => :started, :before => [:prepare, :notify]
+      define_method(:prepare) { @prepared = true }
+      define_method(:notify)  { @notified = true }
     end
 
     object = klass.new
     object.start
 
-    assert object.instance_variable_get(:@clean)
+    assert object.instance_variable_get(:@prepared)
+    assert object.instance_variable_get(:@notified)
+  end
+
+  test "after callback (arity 0)" do
+    klass = create_class do
+      event :start, :from => :created, :to => :started, :after => :cleanup
+      define_method(:cleanup) { @cleaned = true }
+    end
+
+    object = klass.new
+    object.start
+
+    assert object.instance_variable_get(:@cleaned)
   end
 
   test "after callback (arity 1)" do
     klass = create_class do
       event :start, :from => :created, :to => :started, :after => :cleanup
-      define_method(:cleanup) { |arg| @received_arg = arg; @clean = true }
+      define_method(:cleanup) { |arg| @received_arg = arg; @cleaned = true }
     end
 
     object = klass.new
     object.start(:foo, :bar)
 
-    assert object.instance_variable_get(:@clean)
+    assert object.instance_variable_get(:@cleaned)
     assert_equal :start, object.instance_variable_get(:@received_arg)
   end
 
   test "after callback (arity -1)" do
     klass = create_class do
       event :start, :from => :created, :to => :started, :after => :cleanup
-      define_method(:cleanup) { |*args| @received_args = args; @clean = true }
+      define_method(:cleanup) { |*args| @received_args = args; @cleaned = true }
     end
 
     object = klass.new
     object.start(:foo, :bar)
 
-    assert object.instance_variable_get(:@clean)
+    assert object.instance_variable_get(:@cleaned)
     assert_equal 3, object.instance_variable_get(:@received_args).size
+  end
+
+  test "multiple after callbacks" do
+    klass = create_class do
+      event :start, :from => :created, :to => :started, :after => [:cleanup, :notify]
+      define_method(:cleanup) { @cleaned  = true }
+      define_method(:notify)  { @notified = true }
+    end
+
+    object = klass.new
+    object.start
+
+    assert object.instance_variable_get(:@cleaned)
+    assert object.instance_variable_get(:@notified)
   end
 end
