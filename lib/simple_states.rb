@@ -6,8 +6,6 @@ require 'active_support/core_ext/object/try'
 module SimpleStates
   class TransitionException < RuntimeError; end
 
-  PREDICATE_PATTERN = /(was_|^)(\w+?)\?$/
-
   autoload :Event,  'simple_states/event'
   autoload :States, 'simple_states/states'
 
