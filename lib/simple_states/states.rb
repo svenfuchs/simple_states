@@ -16,19 +16,22 @@ module SimpleStates
     end
 
     def initialize(events)
-      events.each { |event| define_event(event) }
+      events.each do |event|
+        define_event(event)
+      end
     end
 
     def define_event(event)
       define_method(event.name) do |*args|
-        event.call(self, *args) do
+        event.send(:call, self, *args) do
           super(*args) if self.class.method_defined?(event.name)
         end
       end
 
       define_method(:"#{event.name}!") do |*args|
-        send(event.name, *args)
-        save!
+        event.saving do
+          send(event.name, *args)
+        end
       end
     end
   end
