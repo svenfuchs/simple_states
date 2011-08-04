@@ -61,3 +61,8 @@ You can define options for all events like so:
     event :all, :after => :notify
 
 This will call :cleanup first and then :notify on :finish.
+
+If no target state was given for an event then SimpleStates will try to derive
+it from the states list. I.e. for an event `start` it will check the states
+list for a state `started` and use it. If it can not find a target state this
+way then it will raise an exception.

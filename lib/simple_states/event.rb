@@ -48,11 +48,7 @@ module SimpleStates
       end
 
       def can_transition?(object)
-        object.state && Array(options.from).include?(object.state)
-      end
-
-      def raise_invalid_transition(object)
-        raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
+        !options.from || object.state && Array(options.from).include?(object.state)
       end
 
       def run_callbacks(object, type, args)
@@ -60,11 +56,17 @@ module SimpleStates
       end
 
       def set_state(object)
-        if state = options.to
+        if state = target_state(object)
           object.past_states << object.state if object.state
           object.state = state.to_sym
           object.send(:"#{state}_at=", Time.now) if object.respond_to?(:"#{state}_at=")
           object.save! if @saving
+        end
+      end
+
+      def target_state(object)
+        options.to || :"#{name}ed".tap do |state|
+          raise_unknown_target_state(object) unless object.class.states.include?(state)
         end
       end
 
@@ -82,6 +84,14 @@ module SimpleStates
 
       def arity(object, method)
         object.class.instance_method(method).arity rescue 0
+      end
+
+      def raise_invalid_transition(object)
+        raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
+      end
+
+      def raise_unknown_target_state(object)
+        raise TransitionException, "can not find target state for #{object.inspect} for event #{name.inspect}."
       end
   end
 end

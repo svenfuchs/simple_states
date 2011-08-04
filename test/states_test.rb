@@ -17,6 +17,17 @@ class StatesTest < Test::Unit::TestCase
     assert object.started?
   end
 
+  test "tries to look up a target state from the states list unless given as a :to option" do
+    object = create_class { states :started; event :start }.new
+    object.start
+    assert object.state?(:started)
+  end
+
+  test "raises TransitionException if no :to option is given and the state can not be derived from the states list" do
+    object = create_class { event :start }.new
+    assert_raises(SimpleStates::TransitionException) { object.start }
+  end
+
   test "state? returns true if the object has the given state" do
     object = create_class { event :start, :from => :created, :to => :started }.new
 
