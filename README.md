@@ -15,10 +15,18 @@ Define states and events like this:
       event :start,  :from => :created, :to => :started,  :if => :startable?
       event :finish, :to => :finished, :after => :cleanup
 
-      attr_accessor :state
+      attr_accessor :state, :started_at, :finished_at
 
       def start
         # start foo
+      end
+
+      def startable?
+        true
+      end
+
+      def cleanup
+        # cleanup foo
       end
     end
 
@@ -66,3 +74,35 @@ If no target state was given for an event then SimpleStates will try to derive
 it from the states list. I.e. for an event `start` it will check the states
 list for a state `started` and use it. If it can not find a target state this
 way then it will raise an exception.
+
+By default SimpleStates will assum `:created` as an initial state. You can
+overwrite this using:
+
+    self.initial_state :something
+
+So with the example above something the following would work:
+
+    foo = Foo.new
+
+    foo.state            # :created
+    foo.created?         # true
+    foo.was_created?     # true
+    foo.state?(:created) # true
+
+    foo.start            # checks Foo#startable? and then calls Foo#start
+
+    foo.state            # :started
+    foo.started?         # true
+    foo.started_at       # Time.now
+    foo.created?         # false
+    foo.was_created?     # true
+
+    foo.finish           # just performs state logic as there's no Foo#finish
+
+    foo.state            # :finished
+    foo.finished?        # true
+    foo.finished_at      # Time.now
+    foo.was_created?     # true
+    foo.was_started?     # true
+
+
