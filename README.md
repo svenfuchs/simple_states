@@ -1,4 +1,4 @@
-# simple\_states
+# simple\_states [![Build Status](https://secure.travis-ci.org/svenfuchs/simple_states.png)](http://travis-ci.org/svenfuchs/simple_states)
 
 A super-slim (~200 loc) statemachine-like support library focussed on use in
 Travis CI.
