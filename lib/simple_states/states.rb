@@ -11,7 +11,8 @@ module SimpleStates
       end
 
       def proxy_for(klass)
-        klass.const_defined?(:States, false) ? klass::States : klass.const_set(:States, new(klass.events))
+        args = [:States].concat(klass.method(:const_defined?).arity != 1 ? [false] : [])
+        klass.const_defined?(*args) ? klass::States : klass.const_set(:States, new(klass.events))
       end
     end
 
