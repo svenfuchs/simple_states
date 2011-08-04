@@ -54,9 +54,9 @@ class ConditionsTest < Test::Unit::TestCase
     assert_equal :created, object.state
   end
 
-  test "does not process the event if the :except callback applies (arity 0)" do
+  test "does not process the event if the :unless callback applies (arity 0)" do
     klass = create_class do
-      event :start, :from => :created, :to => :started, :except => :cancel?
+      event :start, :from => :created, :to => :started, :unless => :cancel?
       define_method(:cancel?) { true }
     end
 
@@ -67,9 +67,9 @@ class ConditionsTest < Test::Unit::TestCase
     assert_equal :created, object.state
   end
 
-  test "does not process the event if the :except callback applies (arity 1)" do
+  test "does not process the event if the :unless callback applies (arity 1)" do
     klass = create_class do
-      event :start, :from => :created, :to => :started, :except => :cancel?
+      event :start, :from => :created, :to => :started, :unless => :cancel?
       define_method(:cancel?) { |arg| @received_arg = arg; true }
     end
 
@@ -80,9 +80,9 @@ class ConditionsTest < Test::Unit::TestCase
     assert_equal :created, object.state
   end
 
-  test "does not process the event if the :except callback applies (arity -1)" do
+  test "does not process the event if the :unless callback applies (arity -1)" do
     klass = create_class do
-      event :start, :from => :created, :to => :started, :except => :cancel?
+      event :start, :from => :created, :to => :started, :unless => :cancel?
       define_method(:cancel?) { |*args| @received_args = args; true }
     end
 
@@ -93,9 +93,9 @@ class ConditionsTest < Test::Unit::TestCase
     assert_equal :created, object.state
   end
 
-  test "processes the event if the :except callback does not apply" do
+  test "processes the event if the :unless callback does not apply" do
     klass = create_class do
-      event :start, :from => :created, :to => :started, :except => :cancel?
+      event :start, :from => :created, :to => :started, :unless => :cancel?
       define_method(:cancel?) { false }
     end
 

@@ -43,7 +43,7 @@ module SimpleStates
       def skip?(object, args)
         result = false
         result ||= !send_methods(object, options.if, args) if options.if?
-        result ||= send_methods(object, options.except, args) if options.except?
+        result ||= send_methods(object, options.unless, args) if options.unless?
         result
       end
 
