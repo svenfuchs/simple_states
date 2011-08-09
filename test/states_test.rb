@@ -93,4 +93,40 @@ class StatesTest < Test::Unit::TestCase
     object.start
     assert_equal now, object.started_at
   end
+
+  test "merge_events (:all first)" do
+    klass = create_class do
+      event :all, :before => :notify
+      event :start, :to => :started, :before => :prepare
+      event :finish, :to => :finished, :before => :cleanup
+    end
+
+    first, second = SimpleStates::States.new(klass.events).events
+    assert_equal [:notify, :prepare], first.options[:before]
+    assert_equal [:notify, :cleanup], second.options[:before]
+  end
+
+  test "merge_events (:all second)" do
+    klass = create_class do
+      event :start, :to => :started, :before => :prepare
+      event :all, :before => :notify
+      event :finish, :to => :finished, :before => :cleanup
+    end
+
+    first, second = SimpleStates::States.new(klass.events).events
+    assert_equal [:prepare, :notify], first.options[:before]
+    assert_equal [:notify, :cleanup], second.options[:before]
+  end
+
+  test "merge_events (:all last)" do
+    klass = create_class do
+      event :start, :to => :started, :before => :prepare
+      event :finish, :to => :finished, :before => :cleanup
+      event :all, :before => :notify
+    end
+
+    first, second = SimpleStates::States.new(klass.events).events
+    assert_equal [:prepare, :notify], first.options[:before]
+    assert_equal [:cleanup, :notify], second.options[:before]
+  end
 end

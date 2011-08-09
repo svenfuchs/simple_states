@@ -47,8 +47,17 @@ module SimpleStates
       end
 
       def merge_events(events)
-        merges, events = *events.partition { |event| event.name == :all }
-        events.each { |event| merges.each { |merge| event.merge(merge) } }
+        if merge_ix = events.index { |event| event.name == :all }
+          merge = events.slice!(merge_ix)
+          events.each_with_index do |event, ix|
+            # method =  ? :append : :prepend
+
+            event.merge(merge, ix < merge_ix)
+          end
+          merge_events(events)
+        else
+          events
+        end
       end
   end
 end

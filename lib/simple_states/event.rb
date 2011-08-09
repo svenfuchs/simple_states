@@ -32,9 +32,9 @@ module SimpleStates
       end
     end
 
-    def merge(other)
+    def merge(other, append = true)
       other.options.each do |key, value|
-        options[key] = [options[key], value].compact unless key == :to
+        options[key] = [options[key]].send(append ? :push : :unshift, value).compact.flatten
       end
     end
 
