@@ -16,13 +16,21 @@ module SimpleStates
       end
     end
 
+    attr_reader :events
+
     def initialize(events)
-      merge_events(events).each do |event|
-        define_event(event)
-      end
+      @events = merge_events(events)
+      setup
     end
 
     protected
+
+      def setup
+        events.each do |event|
+          define_event(event)
+        end
+      end
+
 
       def define_event(event)
         define_method(event.name) do |*args|

@@ -132,4 +132,19 @@ class CallbacksTest < Test::Unit::TestCase
     assert object.instance_variable_get(:@cleaned)
     assert object.instance_variable_get(:@notified)
   end
+
+  test "multiple with event :all" do
+    klass = create_class do
+      event :start, :from => :created, :to => :started, :after => :cleanup
+      event :all, :after => :notify
+      define_method(:cleanup) { @cleaned  = true }
+      define_method(:notify)  { @notified = true }
+    end
+
+    object = klass.new
+    object.start
+
+    assert object.instance_variable_get(:@cleaned)
+    assert object.instance_variable_get(:@notified)
+  end
 end
