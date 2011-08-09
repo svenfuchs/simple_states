@@ -1,0 +1,6 @@
+*~
+#~
+Gemfile.lock
+tmp/*
+*.rbc
+*.class
