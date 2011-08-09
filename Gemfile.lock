@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple_states (0.0.2)
+    simple_states (0.0.4)
       activesupport
       hashr (~> 0.0.10)
 

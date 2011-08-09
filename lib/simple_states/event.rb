@@ -75,11 +75,9 @@ module SimpleStates
       end
 
       def send_method(object, method, args)
-        object.send method, *case arity = self.arity(object, method)
-          when 0;  []
-          when -1; [name].concat(args)
-          else;    [name].concat(args).slice(0..arity - 1)
-        end
+        arity = self.arity(object, method)
+        args = [name].concat(args)
+        object.send method, *args.slice(0, arity < 0 ? args.size : arity)
       end
 
       def arity(object, method)
