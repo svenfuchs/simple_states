@@ -59,7 +59,7 @@ module SimpleStates
         if state = target_state(object)
           object.past_states << object.state if object.state
           object.state = state.to_sym
-          object.send(:"#{state}_at=", Time.now) if object.respond_to?(:"#{state}_at=")
+          object.send(:"#{state}_at=", Time.now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
           object.save! if @saving
         end
       end
