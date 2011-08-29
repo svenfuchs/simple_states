@@ -4,7 +4,9 @@ module SimpleStates
       def init(object)
         object.singleton_class.send(:include, proxy_for(object.class))
         if object.singleton_class.respond_to?(:after_initialize)
-          object.singleton_class.after_initialize { self.state = self.class.initial_state if state.blank? }
+          object.singleton_class.after_initialize do
+            self.state = self.class.initial_state if attribute_present?('state') && state.blank?
+          end
         else
           object.state = object.class.initial_state
         end
