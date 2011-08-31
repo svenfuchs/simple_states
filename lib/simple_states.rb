@@ -1,5 +1,5 @@
 require 'active_support/concern'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 
@@ -12,7 +12,7 @@ module SimpleStates
   extend ActiveSupport::Concern
 
   included do
-    class_inheritable_accessor :state_names, :initial_state, :events
+    class_attribute :state_names, :initial_state, :events
     self.initial_state = :created
     self.events = []
   end
