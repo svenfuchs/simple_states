@@ -42,7 +42,7 @@ module SimpleStates
 
     def event(name, options = {})
       add_states(options[:from], options[:to])
-      self.events << Event.new(name, options)
+      self.events += [Event.new(name, options)]
     end
   end
 
@@ -68,3 +68,4 @@ module SimpleStates
     method.to_s =~ /(was_|^)(#{self.class.states.join('|')})\?$/ ? send(:"#{$1}state?", $2, *args) : super
   end
 end
+
