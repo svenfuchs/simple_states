@@ -94,6 +94,12 @@ class StatesTest < Test::Unit::TestCase
     assert_equal now, object.started_at
   end
 
+  # test "set_state sets the state manually" do
+  #   object = create_class { states :mockiewocked }.new
+  #   object.set_state(:mockiewocked)
+  #   assert object.mockiewocked?
+  # end
+
   test "merge_events (:all first)" do
     klass = create_class do
       event :all, :before => :notify
