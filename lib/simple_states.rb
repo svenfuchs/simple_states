@@ -13,6 +13,7 @@ module SimpleStates
 
   included do
     class_attribute :state_names, :initial_state, :events
+    after_initialize :init_state if respond_to?(:after_initialize)
     self.initial_state = :created
     self.events = []
   end
@@ -47,6 +48,10 @@ module SimpleStates
   end
 
   attr_reader :past_states
+
+  def init_state
+    self.state = self.class.initial_state
+  end
 
   def past_states
     @past_states ||= []
