@@ -50,7 +50,7 @@ module SimpleStates
   attr_reader :past_states
 
   def init_state
-    self.state = self.class.initial_state
+    self.state = self.class.initial_state if state.nil?
   end
 
   def past_states
