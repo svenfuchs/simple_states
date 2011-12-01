@@ -46,8 +46,6 @@ module SimpleStates
         if merge_ix = events.index { |event| event.name == :all }
           merge = events.slice!(merge_ix)
           events.each_with_index do |event, ix|
-            # method =  ? :append : :prepend
-
             event.merge(merge, ix < merge_ix)
           end
           merge_events(events)

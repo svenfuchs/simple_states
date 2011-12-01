@@ -59,7 +59,7 @@ module SimpleStates
         if state = target_state(object)
           object.past_states << object.state if object.state
           object.state = state.to_sym
-          object.send(:"#{state}_at=", Time.now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
+          object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
           object.save! if @saving
         end
       end
@@ -82,6 +82,10 @@ module SimpleStates
 
       def arity(object, method)
         object.class.instance_method(method).arity rescue 0
+      end
+
+      def now
+        Time.respond_to?(:zone) && Time.zone ? Time.zone.now : Time.now.utc
       end
 
       def raise_invalid_transition(object)
