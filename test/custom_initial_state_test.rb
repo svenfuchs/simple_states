@@ -10,15 +10,12 @@ class CustomInitialStateTest < Test::Unit::TestCase
 
     self.initial_state = :unconfirmed
 
-    event :confirm, :from => :unconfirmed, :to => :confirmed
-    event :reject,  :from => :confirmed,   :to => :rejected
-    event :reject,  :from => :unconfirmed, :to => :rejected
-    event :reject,  :from => :deployed,    :to => :rejected
-    event :reject,  :from => :missing,     :to => :rejected
+    event :confirm, :to => :confirmed
+    event :reject,  :to => :rejected
 
-    event :deploy,  :from => :confirmed, :to => :deployed
-    event :scratch, :from => :deployed,  :to => :missing
-    event :recover, :from => :missing,   :to => :deployed
+    event :deploy,  :to => :deployed
+    event :scratch, :to => :missing
+    event :recover, :to => :deployed
   end
 
   test "assumes :created as default initial state" do
@@ -29,5 +26,8 @@ class CustomInitialStateTest < Test::Unit::TestCase
 
     obj.confirm
     assert_equal :confirmed, obj.state
+
+    obj.reject
+    assert_equal :rejected, obj.state
   end
 end
