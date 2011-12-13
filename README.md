@@ -78,7 +78,8 @@ way then it will raise an exception.
 By default SimpleStates will assum `:created` as an initial state. You can
 overwrite this using:
 
-    self.initial_state :something
+    # note that we have to use self here!
+    self.initial_state = :some_state
 
 So with the example above something the following would work:
 
