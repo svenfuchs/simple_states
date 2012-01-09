@@ -49,12 +49,12 @@ as an Array of symbols or strings.
 
 Calling `event` will effectively add methods to a proxy module which is
 included to the singleton class of your class' instances. E.g. declaring `event
-:start` in the example above will add a method `start` to a module included to
-the singleton class of instances of `Foo`.
+:start` in the example above will add methods `start` and `start!` to a module
+included to the singleton class of instances of `Foo`.
 
 This method will
 
-1. check if `:if`/`:except` conditions apply (if given) and just return from the method otherwise
+1. check if `:if`/`:unless` conditions apply (if given) and just return from the method otherwise
 2. check if the object currently is in a valid `:from` state (if given) and raise an exception otherwise
 3. run `:before` callbacks (if given)
 4. call `super` if Foo defines the current method (i.e. call `start` but not `finish` in the example above)
@@ -91,6 +91,8 @@ So with the example above something the following would work:
     foo.state?(:created) # true
 
     foo.start            # checks Foo#startable? and then calls Foo#start
+    # calling foo.start! (with exclamation mark) would perform same actions as foo.start, but
+    # also call foo.save! afterwards.
 
     foo.state            # :started
     foo.started?         # true
@@ -105,5 +107,3 @@ So with the example above something the following would work:
     foo.finished_at      # Time.now
     foo.was_created?     # true
     foo.was_started?     # true
-
-
