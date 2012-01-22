@@ -7,28 +7,30 @@ Travis CI.
 
 Define states and events like this:
 
-    class Foo
-      include SimpleStates
+``` ruby
+class Foo
+  include SimpleStates
 
-      states :created, :started, :finished
+  states :created, :started, :finished
 
-      event :start,  :from => :created, :to => :started,  :if => :startable?
-      event :finish, :to => :finished, :after => :cleanup
+  event :start,  :from => :created, :to => :started,  :if => :startable?
+  event :finish, :to => :finished, :after => :cleanup
 
-      attr_accessor :state, :started_at, :finished_at
+  attr_accessor :state, :started_at, :finished_at
 
-      def start
-        # start foo
-      end
+  def start
+    # start foo
+  end
 
-      def startable?
-        true
-      end
+  def startable?
+    true
+  end
 
-      def cleanup
-        # cleanup foo
-      end
-    end
+  def cleanup
+    # cleanup foo
+  end
+end
+```
 
 Including the SimpleStates module to your class is currently required. We'll add
 hooks for ActiveRecord etc later.
@@ -37,12 +39,14 @@ SimpleStates expects your model to support attribute accessors for `:state`.
 
 Event options have the following well-known meanings:
 
-    :from   # valid states to transition from
-    :to     # target state to transition to
-    :if     # only proceed if the given method returns true
-    :unless # only proceed if the given method returns false
-    :before # run the given method before running `super` and setting the new state
-    :after  # run the given method at the very end
+``` ruby
+:from   # valid states to transition from
+:to     # target state to transition to
+:if     # only proceed if the given method returns true
+:unless # only proceed if the given method returns false
+:before # run the given method before running `super` and setting the new state
+:after  # run the given method at the very end
+```
 
 All of these options except for `:to` can be given as a single symbol or string or
 as an Array of symbols or strings.
@@ -65,8 +69,10 @@ This method will
 
 You can define options for all events like so:
 
-    event :finish, :to => :finished, :after => :cleanup
-    event :all, :after => :notify
+``` ruby
+event :finish, :to => :finished, :after => :cleanup
+event :all, :after => :notify
+```
 
 This will call :cleanup first and then :notify on :finish.
 
@@ -78,32 +84,36 @@ way then it will raise an exception.
 By default SimpleStates will assum `:created` as an initial state. You can
 overwrite this using:
 
-    # note that we have to use self here!
-    self.initial_state = :some_state
+``` ruby
+# note that we have to use self here!
+self.initial_state = :some_state
+```
 
 So with the example above something the following would work:
 
-    foo = Foo.new
+``` ruby
+foo = Foo.new
 
-    foo.state            # :created
-    foo.created?         # true
-    foo.was_created?     # true
-    foo.state?(:created) # true
+foo.state            # :created
+foo.created?         # true
+foo.was_created?     # true
+foo.state?(:created) # true
 
-    foo.start            # checks Foo#startable? and then calls Foo#start
-    # calling foo.start! (with exclamation mark) would perform same actions as foo.start, but
-    # also call foo.save! afterwards.
+foo.start            # checks Foo#startable? and then calls Foo#start
+# calling foo.start! (with exclamation mark) would perform same actions as foo.start, but
+# also call foo.save! afterwards.
 
-    foo.state            # :started
-    foo.started?         # true
-    foo.started_at       # Time.now
-    foo.created?         # false
-    foo.was_created?     # true
+foo.state            # :started
+foo.started?         # true
+foo.started_at       # Time.now
+foo.created?         # false
+foo.was_created?     # true
 
-    foo.finish           # just performs state logic as there's no Foo#finish
+foo.finish           # just performs state logic as there's no Foo#finish
 
-    foo.state            # :finished
-    foo.finished?        # true
-    foo.finished_at      # Time.now
-    foo.was_created?     # true
-    foo.was_started?     # true
+foo.state            # :finished
+foo.finished?        # true
+foo.finished_at      # Time.now
+foo.was_created?     # true
+foo.was_started?     # true
+```
