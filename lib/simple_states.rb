@@ -42,7 +42,7 @@ module SimpleStates
     end
 
     def event(name, options = {})
-      add_states(options[:from], options[:to])
+      add_states(*options[:from], options[:to])
       self.events += [Event.new(name, options)]
     end
   end
