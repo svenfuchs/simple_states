@@ -29,6 +29,15 @@ class StatesTest < Test::Unit::TestCase
     assert_raises(SimpleStates::TransitionException) { object.start }
   end
 
+  test "doesn't raise TransitionException if the state is persisted as a string" do
+    klass = create_class { states :created, :started; event :start, :from => :created, :to => :started }
+    klass.class_eval { def state=(state); @state = state.to_s; end }
+
+    object = klass.new
+
+    assert_nothing_raised(SimpleStates::TransitionException) { object.start }
+  end
+
   test "state? returns true if the object has the given state" do
     object = create_class { event :start, :from => :created, :to => :started }.new
 

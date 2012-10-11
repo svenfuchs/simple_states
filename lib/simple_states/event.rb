@@ -48,7 +48,7 @@ module SimpleStates
       end
 
       def can_transition?(object)
-        !options.from || object.state && Array(options.from).include?(object.state)
+        !options.from || object.state && Array(options.from).include?(object.state.to_sym)
       end
 
       def run_callbacks(object, type, args)
