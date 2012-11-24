@@ -87,7 +87,7 @@ module SimpleStates
       end
 
       def known_target_state?(object)
-        object.class.states.include?(object.state.to_sym)
+        object.state && object.class.states.include?(object.state.to_sym)
       end
 
       def raise_invalid_transition(object)
