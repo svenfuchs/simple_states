@@ -28,6 +28,7 @@ module SimpleStates
 
       yield.tap do
         run_callbacks(object, :after, args)
+        raise_unknown_target_state(object) unless known_target_state?(object)
         object.save! if @saving
       end
     end
@@ -56,18 +57,15 @@ module SimpleStates
       end
 
       def set_state(object)
-        if state = target_state(object)
-          object.past_states << object.state if object.state
-          object.state = state.to_sym
-          object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
-          object.save! if @saving
-        end
+        state = target_state
+        object.past_states << object.state if object.state
+        object.state = state.to_sym
+        object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
+        object.save! if @saving
       end
 
-      def target_state(object)
-        options.to || :"#{name}ed".tap do |state|
-          raise_unknown_target_state(object) unless object.class.states.include?(state)
-        end
+      def target_state
+        options.to || :"#{name}ed"
       end
 
       def send_methods(object, methods, args)
@@ -88,12 +86,16 @@ module SimpleStates
         Time.respond_to?(:zone) && Time.zone ? Time.zone.now : Time.now.utc
       end
 
+      def known_target_state?(object)
+        object.class.states.include?(object.state.to_sym)
+      end
+
       def raise_invalid_transition(object)
         raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
       end
 
       def raise_unknown_target_state(object)
-        raise TransitionException, "can not find target state for #{object.inspect} for event #{name.inspect}."
+        raise TransitionException, "unknown target state #{object.state.inspect} for #{object.inspect} for event #{name.inspect}. known states are #{object.class.states.inspect}"
       end
   end
 end
