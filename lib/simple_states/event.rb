@@ -24,9 +24,9 @@ module SimpleStates
 
       raise_invalid_transition(object) unless can_transition?(object)
       run_callbacks(object, :before, args)
+      set_state(object)
 
       yield.tap do
-        set_state(object)
         run_callbacks(object, :after, args)
         object.save! if @saving
       end
