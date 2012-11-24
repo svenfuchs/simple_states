@@ -110,6 +110,16 @@ class StatesTest < Test::Unit::TestCase
   #   assert object.mockiewocked?
   # end
 
+  test "allows setting the eventual state in the event method" do
+    klass = create_class do
+      event :finish, :to => :finished
+      define_method(:finish) { self.state = :cancelled }
+    end
+    object = klass.new
+    object.finish
+    assert_equal :cancelled, object.state
+  end
+
   test "merge_events (:all first)" do
     klass = create_class do
       event :all, :before => :notify
