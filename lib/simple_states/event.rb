@@ -53,6 +53,7 @@ module SimpleStates
       end
 
       def run_callbacks(object, type, args)
+        object.save! if @saving
         send_methods(object, options.send(type), args)
       end
 
@@ -61,7 +62,6 @@ module SimpleStates
         object.past_states << object.state if object.state
         object.state = state.to_sym
         object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
-        object.save! if @saving
       end
 
       def target_state
