@@ -1,6 +1,3 @@
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 
 module SimpleStates
@@ -9,16 +6,21 @@ module SimpleStates
   autoload :Event,  'simple_states/event'
   autoload :States, 'simple_states/states'
 
-  extend ActiveSupport::Concern
-
-  included do
-    class_attribute :state_names, :initial_state, :events
-    after_initialize :init_state if respond_to?(:after_initialize)
-    self.initial_state = :created
-    self.events = []
+  def self.included(base)
+    base.extend SimpleStates::ClassMethods
+    # Add class level attribute accessors
+    added_class_accessors = [ :state_names, :initial_state, :events ]
+    base.singleton_class.send :attr_accessor, *added_class_accessors
+    base.public_class_method *added_class_accessors
+    base.public_class_method *added_class_accessors.map{|att| "#{att}=".to_sym }
+    # default states
+    base.after_initialize :init_state if base.respond_to?(:after_initialize)
+    base.initial_state = :created
+    base.events = []
   end
 
   module ClassMethods
+
     def new(*)
       super.tap { |object| States.init(object) }
     end
