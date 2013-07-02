@@ -81,7 +81,7 @@ it from the states list. I.e. for an event `start` it will check the states
 list for a state `started` and use it. If it can not find a target state this
 way then it will raise an exception.
 
-By default SimpleStates will assum `:created` as an initial state. You can
+By default SimpleStates will assume `:created` as an initial state. You can
 overwrite this using:
 
 ``` ruby
