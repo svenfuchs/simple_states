@@ -70,7 +70,7 @@ class AssertionsTest < Test::Unit::TestCase
     end
   end
 
-  test "sets @saving back to falls when an expecption is raised" do
+  test "sets @saving back to falls when an expception is raised" do
     klass = create_class do
       event :error, :from => [:started, :warning], :to => :errored
 
@@ -83,12 +83,10 @@ class AssertionsTest < Test::Unit::TestCase
     object.state = :started
     event = klass.events.first
 
-    assert_equal event.instance_variable_get(:@saving), nil
-
     assert_raises(StandardError) do
       object.error!
     end
-    
+
     assert_equal event.instance_variable_get(:@saving), false
   end
 end
