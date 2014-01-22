@@ -16,12 +16,9 @@ module SimpleStates
 
     def saving
       @saving = true
-      begin
-        yield.tap { @saving = false }
-      rescue => e
-        @saving = false
-        raise e
-      end
+      yield
+    ensure
+      @saving = false
     end
 
     def call(object, *args)
