@@ -70,17 +70,26 @@ class AssertionsTest < Test::Unit::TestCase
     end
   end
 
-  test "raises an exception if an event is received when the object is not in any of the expected states (multiple :from states using from: [])" do
+  test "sets @saving back to falls when an expecption is raised" do
     klass = create_class do
       event :error, :from => [:started, :warning], :to => :errored
+
+      define_method(:save!) do |*args|
+        raise StandardError
+      end
     end
 
     object = klass.new
-    object.state = :initialized
+    object.state = :started
+    event = klass.events.first
 
-    assert_raises(SimpleStates::TransitionException) do
-      object.error
+    assert_equal event.instance_variable_get(:@saving), nil
+
+    assert_raises(StandardError) do
+      object.error!
     end
+    
+    assert_equal event.instance_variable_get(:@saving), false
   end
 end
 
