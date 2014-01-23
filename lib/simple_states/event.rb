@@ -16,7 +16,9 @@ module SimpleStates
 
     def saving
       @saving = true
-      yield.tap { @saving = false }
+      yield
+    ensure
+      @saving = false
     end
 
     def call(object, *args)
