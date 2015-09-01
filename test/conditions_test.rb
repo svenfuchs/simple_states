@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ConditionsTest < Test::Unit::TestCase
+class ConditionsTest < Minitest::Test
   include ClassCreateHelper
 
   test "processes the event if the :if callback applies (arity 0)" do

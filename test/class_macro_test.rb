@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ClassMacroTest < Test::Unit::TestCase
+class ClassMacroTest < Minitest::Test
   include ClassCreateHelper
 
   test "assumes :created as default initial state" do

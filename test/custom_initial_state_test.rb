@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class CustomInitialStateTest < Test::Unit::TestCase
+class CustomInitialStateTest < Minitest::Test
   class Stateful
     include SimpleStates
 

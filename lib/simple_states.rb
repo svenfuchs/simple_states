@@ -9,7 +9,7 @@ module SimpleStates
   def self.included(base)
     base.extend SimpleStates::ClassMethods
     # Add class level attribute accessors
-    added_class_accessors = [ :state_names, :initial_state, :events ]
+    added_class_accessors = [:state_names, :initial_state, :events]
     base.singleton_class.send :attr_accessor, *added_class_accessors
     base.public_class_method *added_class_accessors
     base.public_class_method *added_class_accessors.map{|att| "#{att}=".to_sym }
@@ -20,7 +20,6 @@ module SimpleStates
   end
 
   module ClassMethods
-
     def new(*)
       super.tap { |object| States.init(object) }
     end

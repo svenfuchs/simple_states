@@ -1,15 +1,14 @@
 require 'bundler/setup'
-require 'test/unit'
+require 'minitest/autorun'
 require 'test_declarative'
 require 'mocha/setup'
-
-begin
-  require 'ruby-debug'
-rescue LoadError => le
-  puts "Could not not load ruby-debug, moving on..."
-end
-
 require 'simple_states'
+
+module Minitest::Assertions
+  def assert_nothing_raised(*)
+    yield
+  end
+end
 
 module ClassCreateHelper
   def create_class(&block)

@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'active_support/core_ext/time/zones'
 
-class StatesTest < Test::Unit::TestCase
+class StatesTest < Minitest::Test
   include ClassCreateHelper
 
   test "assumes :created as default initial state" do

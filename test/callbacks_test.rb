@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class CallbacksTest < Test::Unit::TestCase
+class CallbacksTest < Minitest::Test
   include ClassCreateHelper
 
   test "before callback (arity 0)" do

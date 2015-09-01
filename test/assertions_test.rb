@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class AssertionsTest < Test::Unit::TestCase
+class AssertionsTest < Minitest::Test
   include ClassCreateHelper
 
   test "does not raise an exception if an event is received when the object is in the expected state (single :from state)" do
