@@ -84,6 +84,17 @@ class StatesTest < Minitest::Test
     assert object.started?
   end
 
+  test "[state]? predicates defined on the class body take precedence" do
+    klass = Class.new do
+      include SimpleStates
+      attr_accessor :state
+      def created?; false; end
+    end
+    object = klass.new
+
+    assert !object.created?
+  end
+
   test "was_[state]? predicates" do
     object = create_class { event :start, :from => :created, :to => :started }.new
 
