@@ -2,6 +2,7 @@ module SimpleStates
   class States < Module
     class << self
       def init(object)
+        object.class.state_names = [object.class.initial_state] if object.class.state_names.empty?
         respond_to?(:prepend) ? prepend_module(object.class) : include_module(object)
         object.init_state unless object.singleton_class.respond_to?(:after_initialize)
       end
@@ -22,7 +23,7 @@ module SimpleStates
       def create_module(const)
         new.tap do |mod|
           merge_events(const.events).each { |event| define_event(mod, event) }
-          const.states.each { |name| define_state(mod, name) }
+          const.state_names.each { |name| define_state(mod, name) }
         end
       end
 

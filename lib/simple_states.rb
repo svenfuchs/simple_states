@@ -9,7 +9,7 @@ module SimpleStates
   class << self
     def included(base)
       base.extend(SimpleStates::ClassMethods)
-      define_accessors(base, :state_names, :initial_state, :events)
+      define_accessors(base, :state_names, :state_options, :initial_state, :events)
       set_defaults(base)
     end
 
@@ -22,6 +22,7 @@ module SimpleStates
       base.after_initialize(:init_state) if base.respond_to?(:after_initialize)
       base.initial_state = :created
       base.state_names = []
+      base.state_options = {}
       base.events = []
     end
   end
@@ -37,7 +38,8 @@ module SimpleStates
 
     def states(*args)
       options = args.last.is_a?(Hash) ? args.pop : {}
-      self.initial_state = options[:initial].to_sym if options.key?(:initial)
+      self.initial_state = options.delete(:initial).to_sym if options.key?(:initial)
+      self.state_options = options
       add_states(*[self.initial_state].concat(args))
     end
 

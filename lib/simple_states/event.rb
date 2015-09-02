@@ -62,8 +62,14 @@ module SimpleStates
       def set_state(object)
         state = target_state
         object.past_states << object.state if object.state
-        object.state = state.to_sym
+        object.state = state.to_sym if set_state?(object, state)
         object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
+      end
+
+      def set_state?(object, state)
+        return true unless object.class.state_options[:ordered]
+        states = object.class.state_names
+        states.index(object.state.try(:to_sym)) < states.index(state)
       end
 
       def target_state
@@ -89,7 +95,7 @@ module SimpleStates
       end
 
       def known_target_state?(object)
-        object.state && object.class.states.include?(object.state.to_sym)
+        object.state && object.class.state_names.include?(object.state.to_sym)
       end
 
       def raise_invalid_transition(object)
