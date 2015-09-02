@@ -117,3 +117,24 @@ foo.finished_at      # Time.now
 foo.was_created?     # true
 foo.was_started?     # true
 ```
+
+In order to treat states as "ordered", the option `ordered: true` can be
+passed.  Events will still behave the same, callbacks be called, etc. However,
+the `state` attribute will never be set back to a previous state.
+
+For example:
+
+```
+class Foo
+  include SimpleStates
+
+  states :created, :started, :finished, ordered: true
+end
+
+foo = Foo.new
+foo.finish
+foo.start
+
+p foo.state
+# => :finished
+```
