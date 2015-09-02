@@ -128,7 +128,8 @@ class StatesTest < Minitest::Test
       event :finish, :to => :finished, :before => :cleanup
     end
 
-    first, second = SimpleStates::States.new(klass.events).events
+    klass.new
+    first, second = klass.events
     assert_equal [:notify, :prepare], first.options[:before]
     assert_equal [:notify, :cleanup], second.options[:before]
   end
@@ -140,7 +141,8 @@ class StatesTest < Minitest::Test
       event :finish, :to => :finished, :before => :cleanup
     end
 
-    first, second = SimpleStates::States.new(klass.events).events
+    klass.new
+    first, second = klass.events
     assert_equal [:prepare, :notify], first.options[:before]
     assert_equal [:notify, :cleanup], second.options[:before]
   end
@@ -152,7 +154,8 @@ class StatesTest < Minitest::Test
       event :all, :before => :notify
     end
 
-    first, second = SimpleStates::States.new(klass.events).events
+    klass.new
+    first, second = klass.events
     assert_equal [:prepare, :notify], first.options[:before]
     assert_equal [:cleanup, :notify], second.options[:before]
   end

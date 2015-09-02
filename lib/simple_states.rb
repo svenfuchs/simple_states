@@ -6,17 +6,24 @@ module SimpleStates
   autoload :Event,  'simple_states/event'
   autoload :States, 'simple_states/states'
 
-  def self.included(base)
-    base.extend SimpleStates::ClassMethods
-    # Add class level attribute accessors
-    added_class_accessors = [:state_names, :initial_state, :events]
-    base.singleton_class.send :attr_accessor, *added_class_accessors
-    base.public_class_method *added_class_accessors
-    base.public_class_method *added_class_accessors.map{|att| "#{att}=".to_sym }
-    # default states
-    base.after_initialize :init_state if base.respond_to?(:after_initialize)
-    base.initial_state = :created
-    base.events = []
+  class << self
+    def included(base)
+      base.extend(SimpleStates::ClassMethods)
+      define_accessors(base, :state_names, :initial_state, :events)
+      set_defaults(base)
+    end
+
+    def define_accessors(base, *names)
+      base.singleton_class.send(:attr_accessor, *names)
+      base.public_class_method(*names + names.map { |name| "#{name}=".to_sym })
+    end
+
+    def set_defaults(base)
+      base.after_initialize(:init_state) if base.respond_to?(:after_initialize)
+      base.initial_state = :created
+      base.state_names = []
+      base.events = []
+    end
   end
 
   module ClassMethods
@@ -29,22 +36,22 @@ module SimpleStates
     end
 
     def states(*args)
-      if args.empty?
-        self.state_names ||= add_states(self.initial_state)
-      else
-        options = args.last.is_a?(Hash) ? args.pop : {}
-        self.initial_state = options[:initial].to_sym if options.key?(:initial)
-        add_states(*[self.initial_state].concat(args))
-      end
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      self.initial_state = options[:initial].to_sym if options.key?(:initial)
+      add_states(*[self.initial_state].concat(args))
     end
 
-    def add_states(*states)
-      self.state_names = (self.state_names || []).concat(states.compact.map(&:to_sym)).uniq
+    def add_states(*names)
+      self.state_names = self.state_names.concat(names.compact.map(&:to_sym)).uniq
     end
 
     def event(name, options = {})
       add_states(options[:to], *options[:from])
       self.events += [Event.new(name, options)]
+    end
+
+    def states_module
+      const_defined?(*args) ? self::StatesProxy : const_set(:StatesProxy, Module.new)
     end
   end
 
@@ -74,4 +81,3 @@ module SimpleStates
     method.to_s =~ /(was_|^)(#{self.class.states.join('|')})\?$/ ? send(:"#{$1}state?", $2, *args) : super
   end
 end
-

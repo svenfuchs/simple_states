@@ -2,36 +2,35 @@ module SimpleStates
   class States < Module
     class << self
       def init(object)
-        object.singleton_class.send(:include, proxy_for(object.class))
+        respond_to?(:prepend) ? prepend_module(object.class) : include_module(object)
         object.init_state unless object.singleton_class.respond_to?(:after_initialize)
       end
 
-      def proxy_for(klass)
-        args = [:StatesProxy].concat(klass.method(:const_defined?).arity != 1 ? [false] : [])
-        klass.const_defined?(*args) ? klass::StatesProxy : klass.const_set(:StatesProxy, new(klass.events))
+      def prepend_module(const)
+        const.prepend(proxy_for(const)) unless const.const_defined?(:StatesProxy)
+      end
+
+      def include_module(object)
+        object.singleton_class.send(:include, proxy_for(object.class))
+      end
+
+      def proxy_for(const)
+        args = [:StatesProxy].concat(const.method(:const_defined?).arity != 1 ? [false] : [])
+        const.const_defined?(*args) ? const::StatesProxy : const.const_set(:StatesProxy, new(const.events, const.states))
       end
     end
 
-    attr_reader :events
-
-    def initialize(events)
-      @events = merge_events(events)
-      setup
+    def initialize(events, states = [])
+      events = merge_events(events)
+      events.each { |event| define_event(event) }
     end
 
-    protected
-
-      def setup
-        events.each do |event|
-          define_event(event)
-        end
-      end
-
+    private
 
       def define_event(event)
         define_method(event.name) do |*args|
           event.send(:call, self, *args) do
-            super(*args) if self.class.method_defined?(event.name)
+            super(*args) if defined?(super)
           end
         end
 
