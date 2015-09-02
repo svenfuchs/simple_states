@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.authors      = ["Sven Fuchs"]
   s.email        = "svenfuchs@artweb-design.de"
   s.homepage     = "https://github.com/svenfuchs/simple_states"
+  s.licenses     = ['MIT']
   s.summary      = "[summary]"
   s.description  = "[description]"
 
