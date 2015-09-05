@@ -27,17 +27,14 @@ module SimpleStates
         end
       end
 
-      def define_event(const, event)
-        const.send(:define_method, event.name) do |*args|
-          event.send(:call, self, *args) do
-            super(*args) if defined?(super)
-          end
+      def define_event(const, (name, options))
+        const.send(:define_method, name) do |*args|
+          event = args.first.is_a?(Event) ? args.shift : Event.new(name, options)
+          event.call(self, *args) { super(*args) if defined?(super) }
         end
 
-        const.send(:define_method, :"#{event.name}!") do |*args|
-          event.saving do
-            send(event.name, *args)
-          end
+        const.send(:define_method, :"#{name}!") do |*args|
+          send(name, Event.new(name, options.merge(save: true)), *args)
         end
       end
 
@@ -52,14 +49,17 @@ module SimpleStates
       end
 
       def merge_events(events)
-        if merge_ix = events.index { |event| event.name == :all }
-          merge = events.slice!(merge_ix)
-          events.each_with_index do |event, ix|
-            event.merge(merge, ix < merge_ix)
-          end
-          merge_events(events)
-        else
-          events
+        return events unless other_ix = events.index { |event| event.first == :all }
+        other = events.slice!(other_ix)
+        events.each_with_index do |event, ix|
+          merge_event(event, other, ix < other_ix)
+        end
+        merge_events(events)
+      end
+
+      def merge_event(event, other, append = true)
+        other.last.each do |key, value|
+          event.last[key] = [event.last[key]].send(append ? :push : :unshift, value).compact.flatten
         end
       end
     end

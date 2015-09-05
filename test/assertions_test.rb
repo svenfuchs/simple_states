@@ -69,25 +69,5 @@ class AssertionsTest < Minitest::Test
       object.error
     end
   end
-
-  test "sets @saving back to falls when an expception is raised" do
-    klass = create_class do
-      event :error, :from => [:started, :warning], :to => :errored
-
-      define_method(:save!) do |*args|
-        raise StandardError
-      end
-    end
-
-    object = klass.new
-    object.state = :started
-    event = klass.events.first
-
-    assert_raises(StandardError) do
-      object.error!
-    end
-
-    assert_equal event.instance_variable_get(:@saving), false
-  end
 end
 

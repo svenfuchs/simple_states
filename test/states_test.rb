@@ -25,8 +25,16 @@ class StatesTest < Minitest::Test
   end
 
   test "raises TransitionException if no :to option is given and the state can not be derived from the states list" do
-    object = create_class { event :start }.new
-    assert_raises(SimpleStates::TransitionException) { object.start }
+    klass = Class.new do
+      include SimpleStates
+      attr_accessor :state
+
+      event :start
+      def start
+        self.state = :running
+      end
+    end
+    assert_raises(SimpleStates::TransitionException) { klass.new.start }
   end
 
   test "doesn't raise TransitionException if the state is persisted as a string" do
@@ -141,8 +149,8 @@ class StatesTest < Minitest::Test
 
     klass.new
     first, second = klass.events
-    assert_equal [:notify, :prepare], first.options[:before]
-    assert_equal [:notify, :cleanup], second.options[:before]
+    assert_equal [:notify, :prepare], first.last[:before]
+    assert_equal [:notify, :cleanup], second.last[:before]
   end
 
   test "merge_events (:all second)" do
@@ -154,8 +162,8 @@ class StatesTest < Minitest::Test
 
     klass.new
     first, second = klass.events
-    assert_equal [:prepare, :notify], first.options[:before]
-    assert_equal [:notify, :cleanup], second.options[:before]
+    assert_equal [:prepare, :notify], first.last[:before]
+    assert_equal [:notify, :cleanup], second.last[:before]
   end
 
   test "merge_events (:all last)" do
@@ -167,7 +175,36 @@ class StatesTest < Minitest::Test
 
     klass.new
     first, second = klass.events
-    assert_equal [:prepare, :notify], first.options[:before]
-    assert_equal [:cleanup, :notify], second.options[:before]
+    assert_equal [:prepare, :notify], first.last[:before]
+    assert_equal [:cleanup, :notify], second.last[:before]
+  end
+
+  test "set custom state in event callback" do
+    klass = Class.new do
+      include SimpleStates
+      attr_accessor :state
+
+      states :passed, :failed
+      event :finish
+
+      def finish
+        self.state = :passed
+      end
+    end
+
+    object = klass.new
+    object.finish
+    assert_equal :passed, object.state
+  end
+
+  test "set state through given data" do
+    klass = create_class do
+      states :passed, :failed
+      event :finish
+    end
+
+    object = klass.new
+    object.finish(state: :passed)
+    assert_equal :passed, object.state
   end
 end

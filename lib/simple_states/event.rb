@@ -14,34 +14,25 @@ module SimpleStates
       end
     end
 
-    def saving
-      @saving = true
-      yield
-    ensure
-      @saving = false
-    end
-
     def call(object, *args)
       return if skip?(object, args)
 
       raise_invalid_transition(object) unless can_transition?(object)
       run_callbacks(object, :before, args)
-      set_state(object)
+      set_state(object, args)
 
       yield.tap do
-        run_callbacks(object, :after, args)
         raise_unknown_target_state(object) unless known_target_state?(object)
-        object.save! if @saving
-      end
-    end
-
-    def merge(other, append = true)
-      other.options.each do |key, value|
-        options[key] = [options[key]].send(append ? :push : :unshift, value).compact.flatten
+        run_callbacks(object, :after, args)
+        object.save! if save?
       end
     end
 
     protected
+
+      def save?
+        options[:save]
+      end
 
       def skip?(object, args)
         result = false
@@ -55,12 +46,12 @@ module SimpleStates
       end
 
       def run_callbacks(object, type, args)
-        object.save! if @saving
+        object.save! if save?
         send_methods(object, options.send(type), args)
       end
 
-      def set_state(object)
-        state = target_state
+      def set_state(object, args)
+        state = target_state(args)
         object.past_states << object.state if object.state
         object.state = state.to_sym if set_state?(object, state)
         object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
@@ -69,11 +60,13 @@ module SimpleStates
       def set_state?(object, state)
         return true unless object.class.state_options[:ordered]
         states = object.class.state_names
-        states.index(object.state.try(:to_sym)) < states.index(state)
+        lft, rgt = states.index(object.state.try(:to_sym)), states.index(state)
+        lft && rgt && lft < rgt
       end
 
-      def target_state
-        options.to || :"#{name}ed"
+      def target_state(args)
+        state = args.last[:state].try(:to_sym) if args.last.is_a?(Hash)
+        state || options.to || "#{name}ed".sub(/eed$/, 'ed').to_sym
       end
 
       def send_methods(object, methods, args)
