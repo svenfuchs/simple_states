@@ -63,6 +63,14 @@ module SimpleStates
     self.state = self.class.initial_state if state.nil?
   end
 
+  def state=(state)
+    super(state.to_sym)
+  end
+
+  def state
+    super.try(:to_sym)
+  end
+
   def past_states
     @past_states ||= []
   end
