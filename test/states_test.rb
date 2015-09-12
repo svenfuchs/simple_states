@@ -115,7 +115,15 @@ class StatesTest < Minitest::Test
     assert object.was_started?
   end
 
-  test "[state]_at is set if a writer is defined" do
+  test "[state]_at is set if a writer is defined and timestamp passed" do
+    now = Time.now.tap { |now| Time.stubs(:now).returns(now) }
+    object = create_class { event :start, :from => :created, :to => :started }.new
+    object.singleton_class.send(:attr_accessor, :started_at)
+    object.start(started_at: now - 60)
+    assert_equal now - 60, object.started_at
+  end
+
+  test "[state]_at is set if a writer is defined and no timestamp passed" do
     now = Time.now.tap { |now| Time.stubs(:now).returns(now) }
     object = create_class { event :start, :from => :created, :to => :started }.new
     object.singleton_class.send(:attr_accessor, :started_at)

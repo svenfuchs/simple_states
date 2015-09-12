@@ -51,10 +51,17 @@ module SimpleStates
       end
 
       def set_state(object, args)
-        state = target_state(args)
+        data  = args.last.is_a?(Hash) ? args.last : {}
+        state = data[:state].try(:to_sym) || target_state
         object.past_states << object.state.to_sym if object.state
         object.state = state.to_sym if set_state?(object, state)
-        object.send(:"#{state}_at=", now) if object.respond_to?(:"#{state}_at=") && object.respond_to?(:"#{state}_at") && object.send(:"#{state}_at").nil?
+        set_timestamp(object, state, data)
+      end
+
+      def set_timestamp(object, state, data)
+        reader, writer = :"#{state}_at", :"#{state}_at="
+        return unless object.respond_to?(writer) && object.respond_to?(reader) && object.send(reader).nil?
+        object.send(writer, data[reader] || now)
       end
 
       def set_state?(object, state)
@@ -64,9 +71,8 @@ module SimpleStates
         lft && rgt && lft < rgt
       end
 
-      def target_state(args)
-        state = args.last[:state].try(:to_sym) if args.last.is_a?(Hash)
-        state || options.to || "#{name}ed".sub(/eed$/, 'ed').to_sym
+      def target_state
+        options.to || "#{name}ed".sub(/eed$/, 'ed').to_sym
       end
 
       def send_methods(object, methods, args)
