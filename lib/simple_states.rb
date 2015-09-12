@@ -73,8 +73,7 @@ module SimpleStates
 
   def reset_state
     self.state = self.class.initial_state
-    states = self.class.state_names - [self.class.initial_state]
-    states.each { |state| self.send(:"#{state}_at=", nil) if respond_to?(:"#{state}_at=") }
+    self.class.events.map { |*args| Event.new(*args).reset(self) }
   end
 
   def past_states

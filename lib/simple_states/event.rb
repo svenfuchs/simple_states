@@ -28,6 +28,10 @@ module SimpleStates
       end
     end
 
+    def reset(object)
+      set_timestamp(object, nil)
+    end
+
     protected
 
       def save?
@@ -55,13 +59,13 @@ module SimpleStates
         state = data[:state].try(:to_sym) || target_state
         object.past_states << object.state.to_sym if object.state
         object.state = state.to_sym if set_state?(object, state)
-        set_timestamp(object, data)
+        set_timestamp(object, data[:"#{target_state}_at"] || now)
       end
 
-      def set_timestamp(object, data)
+      def set_timestamp(object, time)
         reader, writer = :"#{target_state}_at", :"#{target_state}_at="
         return unless object.respond_to?(writer) && object.respond_to?(reader) && object.send(reader).nil?
-        object.send(writer, data[reader] || now)
+        object.send(writer, time)
       end
 
       def set_state?(object, state)
