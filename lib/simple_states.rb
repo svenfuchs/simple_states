@@ -71,6 +71,12 @@ module SimpleStates
     super.try(:to_sym)
   end
 
+  def reset_state
+    self.state = self.class.initial_state
+    states = self.class.state_names - [self.class.initial_state]
+    states.each { |state| self.send(:"#{state}_at=", nil) if respond_to?(:"#{state}_at=") }
+  end
+
   def past_states
     @past_states ||= []
   end
