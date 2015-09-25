@@ -15,7 +15,7 @@ module SimpleStates
     end
 
     def call(object, *args)
-      return if skip?(object, args)
+      return if skip?(object, args) || !set_state?(object, args)
 
       raise_invalid_transition(object) unless can_transition?(object)
       run_callbacks(object, :before, args)
@@ -58,7 +58,7 @@ module SimpleStates
         data  = args.last.is_a?(Hash) ? args.last : {}
         state = data[:state].try(:to_sym) || target_state
         object.past_states << object.state.to_sym if object.state
-        object.state = state.to_sym if set_state?(object, state)
+        object.state = state.to_sym
         set_timestamp(object, data[:"#{target_state}_at"] || now)
       end
 
@@ -68,7 +68,9 @@ module SimpleStates
         object.send(writer, time)
       end
 
-      def set_state?(object, state)
+      def set_state?(object, args)
+        data  = args.last.is_a?(Hash) ? args.last : {}
+        state = data[:state].try(:to_sym) || target_state
         return true unless object.class.state_options[:ordered]
         states = object.class.state_names
         lft, rgt = states.index(object.state.try(:to_sym)), states.index(state)
