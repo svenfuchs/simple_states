@@ -74,7 +74,7 @@ module SimpleStates
         return true unless object.class.state_options[:ordered]
         states = object.class.state_names
         lft, rgt = states.index(object.state.try(:to_sym)), states.index(state)
-        lft && rgt && lft < rgt
+        lft.nil? || rgt.nil? || lft < rgt
       end
 
       def target_state
