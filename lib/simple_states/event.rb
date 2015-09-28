@@ -15,7 +15,7 @@ module SimpleStates
     end
 
     def call(object, *args)
-      return if skip?(object, args) || !set_state?(object, args)
+      return false if skip?(object, args) || !set_state?(object, args)
 
       raise_invalid_transition(object) unless can_transition?(object)
       run_callbacks(object, :before, args)

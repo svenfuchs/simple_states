@@ -30,7 +30,7 @@ module SimpleStates
       def define_event(const, (name, options))
         const.send(:define_method, name) do |*args|
           event = args.first.is_a?(Event) ? args.shift : Event.new(name, options)
-          event.call(self, *args) { super(*args) if defined?(super) }
+          event.call(self, *args) { defined?(super) ? super(*args) : true }
         end
 
         const.send(:define_method, :"#{name}!") do |*args|

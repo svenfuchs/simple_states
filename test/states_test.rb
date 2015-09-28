@@ -215,4 +215,41 @@ class StatesTest < Minitest::Test
     object.finish(state: :passed)
     assert_equal :passed, object.state
   end
+
+  test "returns true when the event was processed" do
+    klass = create_class do
+      states :created, :started
+      event :start
+    end
+
+    object = klass.new
+    assert_equal object.start, true
+  end
+
+  test "returns false when the event was skipped via condition" do
+    klass = Class.new do
+      include SimpleStates
+      attr_accessor :state
+
+      states :created, :started
+      event :start, if: :start?
+
+      def start?; false; end
+    end
+
+    object = klass.new
+    assert_equal object.start, false
+  end
+
+  test "returns false when the event was skipped via ordered states" do
+    klass = create_class do
+      states :created, :started, :finished, ordered: true
+      event :start
+      event :finish
+    end
+
+    object = klass.new
+    object.finish
+    assert_equal object.start, false
+  end
 end
