@@ -131,6 +131,13 @@ class StatesTest < Minitest::Test
     assert_equal now, object.started_at
   end
 
+  test 'can pass arbitrary attributes' do
+    object = create_class { states :started; event :start }.new
+    object.singleton_class.send(:attr_accessor, :foo)
+    object.start(foo: true)
+    assert object.foo
+  end
+
   # test "set_state sets the state manually" do
   #   object = create_class { states :mockiewocked }.new
   #   object.set_state(:mockiewocked)

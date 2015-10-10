@@ -54,13 +54,16 @@ module SimpleStates
         state = data[:state].try(:to_sym) || target_state
         object.past_states << object.state.to_sym if object.state
         object.state = state.to_sym
-        set_timestamp(object, data[:"#{target_state}_at"] || now)
+        write_attrs(object, data)
       end
 
-      def set_timestamp(object, time)
-        reader, writer = :"#{target_state}_at", :"#{target_state}_at="
-        return unless object.respond_to?(writer) && object.respond_to?(reader) && object.send(reader).nil?
-        object.send(writer, time)
+      def write_attrs(object, data)
+        data = { :"#{target_state}_at" => Time.now.utc }.merge(data)
+        data.each { |key, value| write_attr(object, key, value) }
+      end
+
+      def write_attr(object, key, value)
+        object.send(:"#{key}=", value) if object.respond_to?(:"#{key}=") && object.respond_to?(key) && object.send(key).nil?
       end
 
       def set_state?(object, args)
@@ -69,7 +72,7 @@ module SimpleStates
         return true unless object.class.state_options[:ordered]
         states = object.class.state_names
         lft, rgt = states.index(object.state.try(:to_sym)), states.index(state)
-        lft.nil? || rgt.nil? || lft < rgt
+        lft.nil? || rgt.nil? || lft <= rgt
       end
 
       def target_state
