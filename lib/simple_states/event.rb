@@ -24,7 +24,7 @@ module SimpleStates
     end
 
     def reset(object)
-      write_attr(:"#{target_state}_at" => nil)
+      write_attr(object, :"#{target_state}_at", nil)
     end
 
     protected
