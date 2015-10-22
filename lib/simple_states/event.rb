@@ -1,112 +1,77 @@
-require 'active_support/core_ext/module/delegation'
-
 module SimpleStates
-  class Event
-    attr_accessor :name, :options
+  class Event < Struct.new(:name, :opts)
+    MSGS = {
+      invalid_state: 'If multiple target states are defined, then a valid target state must be passed as an attribute ({ state: :state }). %p given, known states: %p.',
+      unknown_state: 'Unknown state %p for %p for event %p. Known states are: %p'
+    }
 
-    def initialize(name, options = {})
-      @name    = name
-      @options = options
+    def call(obj, data)
+      return false if not ordered?(obj, data) or not applies?(obj, data)
+      run_callbacks(:before, obj, data)
+      set_attrs(obj, data)
+      yield
+      raise_unknown_state(obj, data) unless known_state?(obj)
+      run_callbacks(:after, obj, data)
+      true
     end
 
-    def call(object, *args)
-      return false if skip?(object, args) || !set_state?(object, args)
-
-      raise_invalid_transition(object) unless can_transition?(object)
-      run_callbacks(object, :before, args)
-      set_state(object, args)
-
-      yield.tap do
-        raise_unknown_target_state(object) unless known_target_state?(object)
-        run_callbacks(object, :after, args)
-        object.save! if save?
-      end
+    def reset(obj)
+      Array(opts[:to]).each { |state| set_attr(obj, :"#{state}_at", nil) }
     end
 
-    def reset(object)
-      write_attr(object, :"#{target_state}_at", nil)
-    end
+    private
 
-    protected
-
-      def save?
-        options[:save]
+      def run_callbacks(type, obj, data)
+        send_methods(opts[type], obj, data)
       end
 
-      def skip?(object, args)
-        result = false
-        result ||= !send_methods(object, options[:if], args) if options[:if]
-        result ||= send_methods(object, options[:unless], args) if options[:unless]
-        result
+      def set_attrs(obj, data)
+        attrs = { :"#{target_state(data)}_at" => Time.now.utc }.merge(data)
+        attrs.each { |key, value| set_attr(obj, key, value) }
+        obj.state = target_state(data)
       end
 
-      def can_transition?(object)
-        !options[:from] || object.state && Array(options[:from]).include?(object.state.to_sym)
+      def set_attr(obj, key, value)
+        obj.send(:"#{key}=", value) if obj.respond_to?(:"#{key}=")
       end
 
-      def run_callbacks(object, type, args)
-        object.save! if save?
-        send_methods(object, options[type], args)
+      def ordered?(obj, data)
+        states = obj.class.states
+        states.index(obj.state).to_i <= states.index(target_state(data)).to_i
       end
 
-      def set_state(object, args)
-        data  = args.last.is_a?(Hash) ? args.last : {}
-        state = data[:state].try(:to_sym) || target_state
-        object.past_states << object.state.to_sym if object.state
-        object.state = state.to_sym
-        write_attrs(object, data)
+      def applies?(obj, data)
+        result = opts[:if].nil? || send_methods(opts[:if], obj, data)
+        result and opts[:unless].nil? || !send_methods(opts[:unless], obj, data)
       end
 
-      def write_attrs(object, data)
-        data = { :"#{target_state}_at" => Time.now.utc }.merge(data)
-        data.each { |key, value| write_attr(object, key, value) }
+      def target_state(data)
+        to = Array(opts[:to])
+        return to.first if to.size == 1
+        state = data[:state].to_sym if data[:state]
+        to.include?(state) ? state : raise_invalid_state(data)
       end
 
-      def write_attr(object, key, value)
-        object.send(:"#{key}=", value) if object.respond_to?(:"#{key}=") && object.respond_to?(key) && object.send(key).nil?
+      def send_methods(names, obj, data)
+        Array(names).inject(false) do |result, name|
+          result | send_method(name, obj, data)
+        end
       end
 
-      def set_state?(object, args)
-        data  = args.last.is_a?(Hash) ? args.last : {}
-        state = data[:state].try(:to_sym) || target_state
-        return true unless object.class.state_options[:ordered]
-        states = object.class.state_names
-        lft, rgt = states.index(object.state.try(:to_sym)), states.index(state)
-        lft.nil? || rgt.nil? || lft <= rgt
+      def send_method(name, obj, data)
+        obj.send(name, *[self.name, data].slice(0, obj.method(name).arity.abs))
       end
 
-      def target_state
-        options[:to] || "#{name}ed".sub(/eed$/, 'ed').to_sym
+      def known_state?(obj)
+        obj.class.states.include?(obj.state)
       end
 
-      def send_methods(object, methods, args)
-        Array(methods).inject(false) { |result, method| result | send_method(object, method, args) } if methods
+      def raise_invalid_state(data)
+        raise Error, MSGS[:invalid_state] % [data[:state], Array(opts[:to])]
       end
 
-      def send_method(object, method, args)
-        arity = self.arity(object, method)
-        args = [name].concat(args)
-        object.send method, *args.slice(0, arity < 0 ? args.size : arity)
-      end
-
-      def arity(object, method)
-        object.class.instance_method(method).arity rescue 0
-      end
-
-      def now
-        Time.respond_to?(:zone) && Time.zone ? Time.zone.now : Time.now.utc
-      end
-
-      def known_target_state?(object)
-        object.state && object.class.state_names.include?(object.state.to_sym)
-      end
-
-      def raise_invalid_transition(object)
-        raise TransitionException, "#{object.inspect} can not receive event #{name.inspect} while in state #{object.state.inspect}."
-      end
-
-      def raise_unknown_target_state(object)
-        raise TransitionException, "unknown target state #{object.state.inspect} for #{object.inspect} for event #{name.inspect}. known states are #{object.class.states.inspect}"
+      def raise_unknown_state(obj, data)
+        raise Error, MSGS[:unknown_state] % [obj.state, obj, name, obj.class.states]
       end
   end
 end

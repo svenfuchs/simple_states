@@ -1,63 +1,35 @@
-require 'active_support/core_ext/object/try'
+require 'simple_states/states'
 
 module SimpleStates
-  class TransitionException < RuntimeError; end
-
-  autoload :Event,  'simple_states/event'
-  autoload :States, 'simple_states/states'
+  class Error < RuntimeError; end
 
   class << self
-    def included(base)
-      base.extend(SimpleStates::ClassMethods)
-      define_accessors(base, :state_names, :state_options, :initial_state, :events)
-      set_defaults(base)
-    end
-
-    def define_accessors(base, *names)
-      base.singleton_class.send(:attr_accessor, *names)
-      base.public_class_method(*names + names.map { |name| "#{name}=".to_sym })
-    end
-
-    def set_defaults(base)
-      base.after_initialize(:init_state) if base.respond_to?(:after_initialize)
-      base.initial_state = :created
-      base.state_names = []
-      base.state_options = {}
-      base.events = []
+    def included(const)
+      const.extend(ClassMethods)
+      const.prepend(const.const_set(:States, States.new))
+      const.singleton_class.send(:attr_accessor, :initial_state)
+      const.initial_state = :created
     end
   end
 
   module ClassMethods
     def new(*)
-      super.tap { |object| States.init(object) }
+      super.tap { |object| object.init_state }
     end
 
-    def allocate
-      super.tap { |object| States.init(object) }
+    def event(name, opts = {})
+      method = name == :all ? :update_events : :define_event
+      self::States.send(method, name, opts)
     end
 
-    def states(*args)
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      self.initial_state = options.delete(:initial).to_sym if options.key?(:initial)
-      self.state_options = options
-      add_states(*[self.initial_state].concat(args))
+    def state?(state)
+      states.include?(state)
     end
 
-    def add_states(*names)
-      self.state_names = self.state_names.concat(names.compact.map(&:to_sym)).uniq
-    end
-
-    def event(name, options = {})
-      add_states(options[:to], *options[:from])
-      self.events << [name, options]
-    end
-
-    def states_module
-      const_defined?(*args) ? self::StatesProxy : const_set(:StatesProxy, Module.new)
+    def states
+      [initial_state] + self::States.states
     end
   end
-
-  attr_reader :past_states
 
   def init_state
     self.state = self.class.initial_state if state.nil?
@@ -68,23 +40,26 @@ module SimpleStates
   end
 
   def state
-    super.try(:to_sym)
+    state = super and state.to_sym
+  end
+
+  def state?(state)
+    self.state.to_sym == state.to_sym
   end
 
   def reset_state
     self.state = self.class.initial_state
-    self.class.events.map { |*args| Event.new(*args).reset(self) }
+    self.class::States.events.map { |_, event| event.reset(self) }
   end
 
-  def past_states
-    @past_states ||= []
+  def respond_to?(name)
+    state = name.to_s[0..-2].to_sym
+    name.to_s[-1] == '?' && self.class.state?(state) || super
   end
 
-  def state?(state, include_past = false)
-    include_past ? was_state?(state) : self.state.try(:to_sym) == state.to_sym
-  end
-
-  def was_state?(state)
-    past_states.concat([self.state.try(:to_sym)]).compact.include?(state.to_sym)
+  def method_missing(name, *args)
+    state = name.to_s[0..-2].to_sym
+    return super unless name.to_s[-1] == '?' && self.class.state?(state)
+    state?(state)
   end
 end

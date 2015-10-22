@@ -1,3 +1,3 @@
 module SimpleStates
-  VERSION = '1.1.0.rc11'
+  VERSION = '2.0.0.rc1'
 end
