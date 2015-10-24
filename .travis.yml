@@ -4,8 +4,7 @@ rvm:
   - 2.0
   - 2.1
   - 2.2
-  - jruby-1.7
-  - jruby-9.0
+  - jruby-9.0.3.0
 env:
   global:
     - JRUBY_OPTS="--server --1.9"

@@ -25,7 +25,7 @@ describe SimpleStates do
 
     describe 'unknown target state' do
       before { klass.event :finish }
-      before { klass.send(:define_method, :finish) { self.state = :kaputt } }
+      before { klass.send(:define_method, :finish) { |*| self.state = :kaputt } }
       it { expect { obj.finish }.to raise_error(SimpleStates::Error, /Unknown state :kaputt.*Known states are: \[:created, :finished\]/) }
     end
   end

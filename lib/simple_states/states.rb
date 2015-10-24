@@ -18,8 +18,12 @@ module SimpleStates
 
       send(:define_method, name) do |data = {}|
         self.class::States.events[name].call(self, data) do
-          supa = method(name).super_method
-          supa ? supa.call(*[data].slice(0, supa.arity.abs)) : true
+          if method(name).respond_to?(:super_method)
+            supa = method(name).super_method
+            supa.call(*[data].slice(0, supa.arity.abs)) if supa
+          elsif defined?(super)
+            super(name, data)
+          end
         end
       end
 

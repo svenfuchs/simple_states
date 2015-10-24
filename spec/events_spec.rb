@@ -45,7 +45,7 @@ describe SimpleStates, 'event' do
   end
 
   describe 'calls a method with the same name after setting the state' do
-    before { klass.send(:define_method, :start) { self.log = state } }
+    before { klass.send(:define_method, :start) { |*| self.log = state } }
     it { expect { obj.start }.to change { obj.log }.to(:started) }
   end
 end

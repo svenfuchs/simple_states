@@ -6,7 +6,7 @@ module SimpleStates
   class << self
     def included(const)
       const.extend(ClassMethods)
-      const.prepend(const.const_set(:States, States.new))
+      const.send(:prepend, const.const_set(:States, States.new))
       const.singleton_class.send(:attr_accessor, :initial_state)
       const.initial_state = :created
     end
