@@ -5,14 +5,17 @@ module SimpleStates
 
   class << self
     def included(const)
+      states = const.const_set(:States, States.new)
+      const.send(:prepend, states) if const.respond_to?(:prepend)
       const.extend(ClassMethods)
-      const.send(:prepend, const.const_set(:States, States.new))
-      const.singleton_class.send(:attr_accessor, :initial_state)
       const.initial_state = :created
+      const.after_initialize(:init_state) if const.respond_to?(:after_initialize)
     end
   end
 
   module ClassMethods
+    attr_accessor :initial_state
+
     def new(*)
       super.tap { |object| object.init_state }
     end
@@ -32,7 +35,8 @@ module SimpleStates
   end
 
   def init_state
-    self.state = self.class.initial_state if state.nil?
+    singleton_class.send(:include, self.class::States) unless self.class.respond_to?(:prepend)
+    self.state = self.class.initial_state if self.state.nil?
   end
 
   def state=(state)
@@ -40,7 +44,8 @@ module SimpleStates
   end
 
   def state
-    state = super and state.to_sym
+    state = super
+    state.to_sym if state
   end
 
   def state?(state)
