@@ -16,8 +16,8 @@ module SimpleStates
     def define_event(name, opts)
       events[name] = Event.new(name, { to: to_past(name).to_sym }.merge(opts))
 
-      send(:define_method, name) do |data = {}|
-        self.class::States.events[name].call(self, data) do
+      send(:define_method, name) do |data = {}, opts = {}|
+        self.class::States.events[name].call(self, data, opts) do
           if method(name).respond_to?(:super_method)
             supa = method(name).super_method
             supa.call(*[data].slice(0, supa.arity.abs)) if supa
@@ -28,8 +28,7 @@ module SimpleStates
       end
 
       send(:define_method, :"#{name}!") do |data = {}|
-        send(name, data)
-        save!
+        send(name, data, save: true)
       end
     end
 

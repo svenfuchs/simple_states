@@ -5,13 +5,19 @@ module SimpleStates
       unknown_state: 'Unknown state %p for %p for event %p. Known states are: %p'
     }
 
-    def call(obj, data)
+    def call(obj, data, opts)
       return false if not ordered?(obj, data) or not applies?(obj, data)
+
       run_callbacks(:before, obj, data)
       set_attrs(obj, data)
+      obj.save! if opts[:save]
+
       yield
+
       raise_unknown_state(obj, data) unless known_state?(obj)
       run_callbacks(:after, obj, data)
+      obj.save! if opts[:save]
+
       true
     end
 
