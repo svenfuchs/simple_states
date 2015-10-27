@@ -10,9 +10,8 @@ module SimpleStates
 
       run_callbacks(:before, obj, data)
       set_attrs(obj, data)
-      obj.save! if opts[:save]
-
       yield
+      obj.save! if opts[:save]
 
       raise_unknown_state(obj, data) unless known_state?(obj)
       run_callbacks(:after, obj, data)

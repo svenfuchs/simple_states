@@ -20,7 +20,7 @@ module SimpleStates
         self.class::States.events[name].call(self, data, opts) do
           if method(name).respond_to?(:super_method)
             supa = method(name).super_method
-            supa.call(*[data].slice(0, supa.arity.abs)) if supa
+            supa.call(*[name, data].slice(0, supa.arity.abs)) if supa
           elsif defined?(super)
             super(name, data)
           end
