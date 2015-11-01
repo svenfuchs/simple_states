@@ -16,7 +16,6 @@ module SimpleStates
       raise_unknown_state(obj, data) unless known_state?(obj)
       run_callbacks(:after, obj, data)
       obj.save! if opts[:save]
-
       true
     end
 
