@@ -36,7 +36,11 @@ module SimpleStates
       end
 
       def set_attr(obj, key, value)
-        obj.send(:"#{key}=", value) if obj.respond_to?(:"#{key}=")
+        obj.send(:"#{key}=", value) if obj.respond_to?(:"#{key}=") and not has_timestamp?(obj, key)
+      end
+
+      def has_timestamp?(obj, key)
+        key.to_s.end_with?('_at') && obj.respond_to?(key) && obj.send(key)
       end
 
       def ordered?(obj, data)

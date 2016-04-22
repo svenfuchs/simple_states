@@ -34,8 +34,28 @@ describe SimpleStates, 'event' do
     end
 
     describe 'when a timestamp is passed' do
-      let(:attrs) { { started_at: now - 60 } }
+      let(:attrs) { { started_at: now - 60, state: "started" } }
       it { expect { obj.start(attrs) }.to change { obj.started_at }.to(attrs[:started_at]) }
+    end
+  end
+
+  describe 'ignores timestamp' do
+    describe 'when started_at had been set earlier' do
+      let(:attrs) { { started_at: now - 60, finished_at: now - 50, state: "passed" } }
+      let(:early) { now - 55 }
+      before      { obj.started_at = early }
+      before      { obj.finish(attrs) }
+      it { expect(obj.started_at).to eq early }
+      it { expect(obj.finished_at).to eq attrs[:finished_at] }
+    end
+
+    describe 'when finished_at had been set earlier' do
+      let(:attrs) { { started_at: now - 60, finished_at: now - 50, state: "passed" } }
+      let(:early) { now - 45 }
+      before      { obj.finished_at = early }
+      before      { obj.finish(attrs) }
+      it { expect(obj.started_at).to eq attrs[:started_at] }
+      it { expect(obj.finished_at).to eq early }
     end
   end
 
