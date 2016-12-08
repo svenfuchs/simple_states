@@ -18,9 +18,9 @@ Gem::Specification.new do |s|
   s.rubyforge_project = '[none]'
 
   s.add_dependency 'activesupport'
-  s.add_dependency 'hashr', '~> 0.0.10'
 
   s.add_development_dependency 'rake', '~> 0.9.2'
+  s.add_development_dependency 'test-unit'
   s.add_development_dependency 'test_declarative'
   s.add_development_dependency 'mocha'
 end
