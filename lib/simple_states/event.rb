@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/delegation'
-require 'hashr'
 
 module SimpleStates
   class Event
@@ -7,11 +6,7 @@ module SimpleStates
 
     def initialize(name, options = {})
       @name    = name
-      @options = Hashr.new(options) do
-        def except
-          self[:except]
-        end
-      end
+      @options = options
     end
 
     def saving
@@ -45,18 +40,18 @@ module SimpleStates
 
       def skip?(object, args)
         result = false
-        result ||= !send_methods(object, options.if, args) if options.if?
-        result ||= send_methods(object, options.unless, args) if options.unless?
+        result ||= !send_methods(object, options[:if], args) if options.key?(:if)
+        result ||= send_methods(object, options[:unless], args) if options.key?(:unless)
         result
       end
 
       def can_transition?(object)
-        !options.from || object.state && Array(options.from).include?(object.state.to_sym)
+        !options[:from] || object.state && Array(options[:from]).include?(object.state.to_sym)
       end
 
       def run_callbacks(object, type, args)
         object.save! if @saving
-        send_methods(object, options.send(type), args)
+        send_methods(object, options[type.to_sym], args)
       end
 
       def set_state(object)
@@ -67,7 +62,7 @@ module SimpleStates
       end
 
       def target_state
-        options.to || :"#{name}ed"
+        options[:to] || :"#{name}ed"
       end
 
       def send_methods(object, methods, args)
