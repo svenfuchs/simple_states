@@ -57,7 +57,7 @@ module SimpleStates
     self.class::States.events.map { |_, event| event.reset(self) }
   end
 
-  def respond_to?(name)
+  def respond_to?(name, include_all = false)
     state = name.to_s[0..-2].to_sym
     name.to_s[-1] == '?' && self.class.state?(state) || super
   end
